@@ -93,22 +93,12 @@ make_adj([Current|Rest],Courses, TheCourses) :-
 process_codes([],[]).
 process_codes(Codes, CourseData) :-
     removeSpace(Codes, Rest),
-    Rest = [X|_],
-    if(code_type(X,alpha),
-
-        (% then
-        get_name(Rest, NameCodes, Rest2),
-        get_ids(Rest2, IDs, Remaining),
-        atom_codes(Name, NameCodes),
-        process_codes(Remaining, OtherCourses),
-        CourseData = [(Name,IDs)|OtherCourses]
-        ),
-
-        (% else
-        write('Invalid course name found.'),
-        fail
-        )
-    ).
+    get_name(Rest, NameCodes, Rest2),
+    get_ids(Rest2, IDs, Remaining),
+    atom_codes(Name, NameCodes),
+    process_codes(Remaining, OtherCourses),
+    not(member((Name,_), OtherCourses)),
+    CourseData = [(Name,IDs)|OtherCourses].
     
 
 
@@ -120,13 +110,14 @@ process_codes(Codes, CourseData) :-
 get_ids(Codes,IDs, Remaining) :-
     removeSpace(Codes, Rest),
     if( % End of file or course name
-        (Rest = []; Rest = [First|_], code_type(First, alpha)),
+        (Rest = []; Rest = [First|_], not(code_type(First,digit))),
         (!, IDs = [], Remaining = Rest),
         (
             get_id(Rest,ID,Rest2),
             number_codes(Number, ID),
             Number // 1000000 =:= 201,
             get_ids(Rest2, OtherIDs, Remaining),
+            not(member(Number, OtherIDs)),
             IDs = [Number|OtherIDs]
         )
     ).
@@ -160,6 +151,7 @@ get_name(Codes, Name, Remaining) :-
         (!, Name = [], Remaining = Codes),
         (   
             get_name(Rest, OtherName, Remaining),
+            code_type(First,csym),
             Name = [First|OtherName]
         )
     ).
