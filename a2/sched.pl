@@ -41,7 +41,7 @@ sched(CourseFile, NumSlots) :-
         write('Time:'),nl,nl,
         writeSchedule(TheCourses), !
         ;
-        nl,write('Sorry, could not produce schdeule with given number of time slots.').
+        nl,write('Sorry, invalid data found. Please verify data given.').
 
 % Finds a valid instatiation of time slots for each course if possible
 schedule([],[_|_]).
@@ -93,11 +93,23 @@ make_adj([Current|Rest],Courses, TheCourses) :-
 process_codes([],[]).
 process_codes(Codes, CourseData) :-
     removeSpace(Codes, Rest),
-    get_name(Rest, NameCodes, Rest2),
-    get_ids(Rest2, IDs, Remaining),
-    atom_codes(Name, NameCodes),
-    process_codes(Remaining, OtherCourses),
-    CourseData = [(Name,IDs)|OtherCourses].
+    Rest = [X|_],
+    if(code_type(X,alpha),
+
+        (% then
+        get_name(Rest, NameCodes, Rest2),
+        get_ids(Rest2, IDs, Remaining),
+        atom_codes(Name, NameCodes),
+        process_codes(Remaining, OtherCourses),
+        CourseData = [(Name,IDs)|OtherCourses]
+        ),
+
+        (% else
+        write('Invalid course name found.'),
+        fail
+        )
+    ).
+    
 
 
 % Reads ID numbers from codes until another course is encountered, or until end of file.
@@ -113,6 +125,7 @@ get_ids(Codes,IDs, Remaining) :-
         (
             get_id(Rest,ID,Rest2),
             number_codes(Number, ID),
+            Number // 1000000 =:= 201,
             get_ids(Rest2, OtherIDs, Remaining),
             IDs = [Number|OtherIDs]
         )
