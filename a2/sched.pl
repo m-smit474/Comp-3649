@@ -25,13 +25,21 @@ removeSpace([ X | XS ], Rest) :-
 	  ).
 %-----------------------------------------
 
-sched(CourseFile, NumSlots) :-
+sched(CourseFile, RoomFile, NumSlots) :-
     catch( read_file_to_codes(CourseFile,Codes,[]),
 			_,
 			( writef('\nCouldn\'t open %d.\n',[CourseFile]),
 			fail
 			)
-		),
+        ),
+        catch( read_file_to_codes(RoomFile, RoomCodes, []),
+            _,
+            ( 
+                writef('\nCouldn\'t open %d.\n',[RoomFile]),
+                fail
+            )
+        ),
+        process_rooms(RoomCodes, RoomData),
         process_codes(Codes, CourseData),
         maplist(newCourse, CourseData, Courses),
         make_adj(Courses,Courses,TheCourses),
@@ -42,6 +50,19 @@ sched(CourseFile, NumSlots) :-
         writeSchedule(TheCourses), !
         ;
         nl,write('Sorry, invalid data found. Please verify data given.').
+
+process_rooms([],[]).
+process_rooms(Codes, RoomData) :-
+    removeSpace(Codes, Rest),
+    get_name(Rest, NameCodes, Rest2),
+    removeSpace(Rest2, Rest3),
+    get_id(Rest3, CapacityCodes, Rest4),
+    atom_codes(Name, NameCodes),
+    number_codes(Capacity, CapacityCodes),
+    removeSpace(Rest4, Remaining),
+    process_rooms(Remaining, OtherRooms),
+    not(member((Name,_), OtherRooms)),
+    RoomData = [(Name,Capacity)|OtherRooms].
 
 % Finds a valid instatiation of time slots for each course if possible
 schedule([],[_|_]).
