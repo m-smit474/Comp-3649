@@ -156,6 +156,7 @@ get_id(Codes, ID, Remaining) :-
         (!, ID = [], Remaining = Codes),
         (
             get_id(Rest, OtherID, Remaining),
+            code_type(First,digit),
             ID = [First|OtherID]
         )
     ).
