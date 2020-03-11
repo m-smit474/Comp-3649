@@ -51,6 +51,10 @@ sched(CourseFile, RoomFile, NumSlots) :-
         ;
         nl,write('Sorry, invalid data found. Please verify data given.').
 
+% Creates a list RoomData consisting of (<RoomName>, <Capacity>) from a list of codes
+%
+% Codes ----> the room file codes
+% RoomData -> a list of (roomName, capacity)
 process_rooms([],[]).
 process_rooms(Codes, RoomData) :-
     removeSpace(Codes, Rest),
@@ -65,6 +69,9 @@ process_rooms(Codes, RoomData) :-
     RoomData = [(Name,Capacity)|OtherRooms].
 
 % Finds a valid instatiation of time slots for each course if possible
+%
+% Courses ---> a list of courses with insitiated adjacency lists
+% TimeSlots -> a list of available time slots
 schedule([],[_|_]).
 schedule([Course|Rest], [Slot|Slots]) :-
     schedule(Rest, [Slot|Slots]),
@@ -83,6 +90,9 @@ schedule([Course|Rest], [Slot|Slots]) :-
     
 
 % Relates a list of (adjacent) courses with a list of the slots they’ve claimed
+%
+% Courses ----> the adjacency list of a course
+% TakenSlots -> a list of time slots that are taken by some adjacent course
 taken([],[]).
 taken([Course|Rest], TakenSlots) :-
     taken(Rest, OtherTimes),
@@ -98,6 +108,10 @@ taken([Course|Rest], TakenSlots) :-
 
 
 % Creates a list of course/4 structures with instatiated adjacency list.
+%
+% Courses ----> courses being filled (does each course in this list)
+% Courses ----> an unchanging list of courses
+% TheCourses -> the final list of instantiated courses
 make_adj([],_,[]).
 make_adj([Current|Rest],Courses, TheCourses) :-
     withAdjacent(Current,Courses),
@@ -181,6 +195,8 @@ get_name(Codes, Name, Remaining) :-
 
 % Given a list of course/4 structures, this prints the name of each
 % to the output along with the slot into which it has been scheduled. 
+%
+% Courses -> the list of courses to be printed
 writeSchedule([]) :- nl.
 writeSchedule([Course|Rest]) :-
     Course = course(Name,_,_,Time),
